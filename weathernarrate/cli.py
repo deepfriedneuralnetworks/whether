@@ -40,7 +40,7 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_forecast = sub.add_parser("forecast", help="Global ensemble forecast (Earth2 or ECMWF)")
-    p_forecast.add_argument("location", nargs="?", help='Location string, e.g. "Cambridge, MA"')
+    p_forecast.add_argument("location", nargs="?", help='Location string, e.g. "NYC"')
     p_forecast.add_argument(
         "--provider",
         choices=["earth2", "ecmwf"],

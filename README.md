@@ -1,121 +1,122 @@
 # WeatherNarrate
 
-Earth-2 + Nemotron weather narrative CLI.
+Weather forecasting CLI that combines ensemble weather outputs with Nemotron narratives.
 
-`weathernarrate` runs NVIDIA Earth-2 weather model workflows, extracts local uncertainty statistics from ensembles/samples, and generates natural-language summaries with Nemotron.
+`weathernarrate` supports three modes (`forecast`, `storm`, `zoom`) and produces:
+- structured local summary with uncertainty stats
+- optional Nemotron narrative
+- charts + JSON artifacts
 
-## Modes
+## Current Implementation Status
 
-| Subcommand | Earth-2 model | Resolution | Coverage | Time step |
-|---|---|---|---|---|
-| `forecast` | Earth2 (DLWP / FCN / FCN3) or ECMWF IFS ENS | ~25 km | Global | 6h |
-| `storm` | StormCast ensemble | ~3 km | Central US domain | 1h |
-| `zoom` | CorrDiff Taiwan | ~3 km | Taiwan | snapshot |
+| Command | Backend | Status |
+|---|---|---|
+| `forecast` | ECMWF IFS ENS (default) or Earth-2 DLWP/FCN/FCN3 | Working |
+| `storm` | Earth-2 StormCast | Working (`--dry-run` available; real run requires heavy deps/GPU) |
+| `zoom` | CorrDiff Taiwan | `--dry-run` only (real inference scaffold not yet wired) |
 
-Alias entry points are also installed:
-
+Alias entry points are installed:
 - `weatherforecast`
 - `weatherstorm`
 - `weatherzoom`
 
-## Architecture
+## Forecast Behavior (Important)
 
-```
-forecast / storm / zoom
-  -> model inference (mode-specific)
-  -> extract/interpolate local data
-  -> compute mean/spread/min/max across ensemble/sample
-  -> format structured summary
-  -> Nemotron narrative
-  -> charts + JSON output
-```
+- Default provider: `ecmwf`
+- Default members: `6`
+- Default steps: `6` (6-hour spacing, 36h horizon)
+- Timeline window includes:
+  - one forecast point immediately before "now" (context)
+  - all forecast points from "now" through horizon
+- Forecast dashboard includes a dashed vertical "now" line on timeline panels.
+- Map panel is location-centered regional context (~3000 km radius), not full-globe.
 
-## Calibrated Uncertainty Communication
+## Uncertainty Calibration
 
-Forecast summaries now include variable-level calibration bands using spread/sigma ratios:
+Narrative confidence language is tied to spread/sigma ratio bands:
+- `< 1 sigma`: `high confidence`
+- `1-2 sigma`: `moderate confidence, notable uncertainty`
+- `> 2 sigma`: `low confidence, highly uncertain`
 
-- ratio `< 1σ` -> `high confidence`
-- ratio `1-2σ` -> `moderate confidence, notable uncertainty`
-- ratio `> 2σ` -> `low confidence, highly uncertain`
+Current sigma references are static per variable (not dynamically estimated from local climatology).
 
-These bands are injected into the Nemotron prompt and structured summary so narrative wording is tied to calibrated uncertainty, not just raw spread values.
-
-## Quickstart
-
-1. Create environment and install:
+## Install
 
 ```bash
 uv sync
 ```
 
-2. Dry-run global forecast (no Earth-2 inference required):
-
+Optional dependencies:
+- ECMWF forecast backend:
 ```bash
-uv run weathernarrate forecast "Cambridge, MA" --dry-run --no-narrate
+uv pip install ecmwf-opendata cfgrib eccodes
 ```
-Default `forecast` settings use ECMWF open-data ensemble with 6 members and a 36-hour future window (`--steps 6`, 6-hour spacing).
-
-2b. ECMWF ensemble forecast (same unified `forecast` command):
-
+- Map boundaries/coastlines on forecast panel:
 ```bash
-uv run weathernarrate forecast "Cambridge, MA" --provider ecmwf --members 10 --steps 8 --no-narrate
+uv pip install cartopy
+```
+- StormCast mode:
+```bash
+uv pip install 'earth2studio[stormcast]' pyproj
+```
+- CorrDiff mode (still scaffolded for real runs):
+```bash
+uv pip install 'earth2studio[corrdiff]'
 ```
 
-ECMWF downloads are cached by default under `.cache/weathernarrate/ecmwf`.
-Use `--no-cache` to force fresh downloads, or `--cache-dir <path>` to customize location.
+## Usage
 
-3. Dry-run StormCast mode:
+Forecast (default ECMWF):
+```bash
+uv run weathernarrate forecast "NYC"
+```
 
+Forecast without narrative:
+```bash
+uv run weathernarrate forecast "NYC" --no-narrate
+```
+
+Forecast dry-run (no real model/data download):
+```bash
+uv run weathernarrate forecast "NYC" --dry-run --no-narrate
+```
+
+Earth-2 forecast backend:
+```bash
+uv run weathernarrate forecast "NYC" --provider earth2 --model dlwp
+```
+
+StormCast dry-run:
 ```bash
 uv run weathernarrate storm "Denver, CO" --dry-run --no-narrate
 ```
 
-4. Dry-run CorrDiff mode:
-
+CorrDiff dry-run:
 ```bash
 uv run weathernarrate zoom "Taipei" --dry-run --no-narrate
 ```
 
-5. Enable Nemotron narrative:
+## Nemotron Narrative
 
+Set API key:
 ```bash
 export OPENROUTER_API_KEY=your_key
-uv run weathernarrate forecast "Cambridge, MA" --dry-run
 ```
 
-6. Generate the narrow-vs-wide uncertainty language demo:
+Then run any command without `--no-narrate`.
 
-```bash
-export OPENROUTER_API_KEY=your_key
-uv run python examples/uncertainty_demo.py --api-key "$OPENROUTER_API_KEY" --output examples/uncertainty_demo.md
-```
+Narrative prompt currently enforces sections in this order:
+1. TL;DR
+2. Description
+3. Timeline
+4. Uncertainty
+5. Practical Advice
 
-This creates `examples/uncertainty_demo.md` with two cases and two Nemotron narratives so you can verify confidence language shifts with spread.
+## Outputs
 
-## Real Earth-2 installs
+Per run, the CLI writes:
+- model output dataset (`.zarr`)
+- structured summary JSON (`*_summary.json`)
+- charts (forecast dashboard or mode-specific plots)
 
-Install optional extras based on mode:
-
-```bash
-uv pip install 'earth2studio[dlwp]'
-uv pip install 'earth2studio[fcn]'
-uv pip install 'earth2studio[fcn3]'
-uv pip install ecmwf-opendata cfgrib eccodes
-uv pip install 'earth2studio[stormcast]' pyproj
-uv pip install 'earth2studio[corrdiff]'
-uv pip install cartopy  # optional: map boundaries in forecast dashboard
-```
-
-## Current status
-
-- `forecast`: wired with Earth-2 ensemble path, ECMWF open-data ensemble path, and dry-run fallback.
-- `storm`: wired with StormCast path + dry-run fallback.
-- `zoom`: scaffolded and fully dry-run capable; real CorrDiff custom loop is left as a follow-up integration in `weathernarrate/forecast.py`.
-
-## Output artifacts
-
-Each run writes:
-
-- Zarr model output (or synthetic output in dry-run)
-- Structured JSON summary
-- Mode-specific charts in `./outputs`
+Default output directory: `./outputs`
