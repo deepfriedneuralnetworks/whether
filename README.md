@@ -49,6 +49,46 @@ As of 11:10 PM PST on February 15, 2026, a cold front is approaching the San Fra
 * **Commute Timing**: Plan for potentially hazardous road conditions and reduced visibility during the Thursday morning commute.
 * **Outdoor Plans**: Postpone outdoor activities until after the forecast window (Thursday afternoon or later) to avoid rain and cooler temperatures.
 ```
+
+Running: ```whether forecast "Reykjavik, Iceland"```
+![Forecast dashboard Reykjavik](docs/forecast_dashboard_reykjavik.png)
+
+```
+**1. TL;DR**
+Expect a gradual temperature rise with freezing conditions persisting, and a late-day precipitation chance, all within a relatively certain forecast.
+
+**2. Description**
+As of 08:07 GMT on February 16, 2026, a cold pattern dominates the region, with temperatures expected to rise slightly over the forecast window (06:00 GMT, Feb 16 - 18:00 GMT, Feb 17). The current temperature nears -5.3°C (22.5°F), warming up to approximately -2.8°C (26.9°F) by the end of the period.
+
+**3. Timeline**
+* **06:00 GMT, Feb 16 (start of window)**:
+	+ Temperature: around -5.3°C (22.5°F)
+	+ Wind: approximately 4.56 mph
+	+ Precipitation: 0.00 mm (0.00 in), dry conditions
+* **08:07 GMT, Feb 16 (near-current)**:
+	+ **No specific model output for this exact time; using start of window values for context**
+* **12:00 GMT, Feb 17 (notable transition - potential rain onset)**:
+	+ Temperature: rising, but still below freezing
+	+ Wind: potentially increasing, up to 18.53 mph
+	+ Precipitation: chance of first rain (5/7 members agree), up to 7.00 mm (0.28 in) by the end of the window
+* **18:00 GMT, Feb 17 (end of window)**:
+	+ Temperature: near -2.8°C (26.9°F)
+	+ Wind: up to 18.53 mph
+	+ Precipitation: potential for accumulated precipitation, with 14% chance of exceeding 5 mm (0.20 in)
+
+**4. Uncertainty**
+* **Temperature (t2m)**: High confidence, with a spread of 0.42°C, representing 0.17 sigma of the climatological variability.
+* **Precipitation (tp)**: High confidence, given a spread of 0.49 mm, which is 0.25 sigma of the climatological spread.
+* **Wind Speed (wind10m_speed)**: High confidence, with a spread of 1.43 mph, equating to 0.29 sigma of the climatological variability.
+* **Largest Member Disagreement**: Not explicitly stated in the provided data, but generally, late-day precipitation timing and intensity might show the most variability among members.
+
+**5. Practical Advice**
+* **Dress**: Wear warm, layered clothing to adapt to the slight temperature increase, with a focus on cold, potentially wet conditions by late day.
+* **Umbrella/Rain Gear**: Consider carrying an umbrella or raincoat from mid-day onwards (around 12:00 GMT, Feb 17) in anticipation of potential rain.
+* **Commute Timing**: Plan your commute to avoid the late-day potential rain peak (around 12:00-18:00 GMT, Feb 17).
+* **Outdoor Plans**: Be prepared for cold conditions throughout, with a chance of wet conditions affecting outdoor activities scheduled for late in the day (after 12:00 GMT, Feb 17).
+```
+
 ## What It Does
 
 ```
