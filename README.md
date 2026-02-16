@@ -7,7 +7,7 @@ One command gets you an ensemble forecast, a 4-panel dashboard, probability-of-i
 ## Demo
 
 Running: ```whether forecast "San Francisco"```
-![Example of forecast in SF](outputs/forecast_dashboard.png)
+![Forecast dashboard](docs/forecast_dashboard.png)
 
 ```
 **1. TL;DR**
@@ -89,6 +89,11 @@ Full run with Nemotron narrative:
 export OPENROUTER_API_KEY=your_key
 uv run whether forecast "NYC"
 ```
+
+## Runtime Notes
+
+- ECMWF runs can take a couple of minutes on first use because the CLI must download the required forecast files (later runs are faster with cache hits).
+- For Earth-2 backends (`--provider earth2`, `storm`, and real `zoom` once wired), a CUDA GPU is strongly recommended for practical runtime.
 
 ## Optional Dependencies
 
