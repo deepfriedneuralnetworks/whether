@@ -3,7 +3,7 @@
 ## Command
 
 ```bash
-weathernarrate forecast "NYC" --dry-run --no-narrate
+whether forecast "NYC" --dry-run --no-narrate
 ```
 
 ## Structured summary excerpt

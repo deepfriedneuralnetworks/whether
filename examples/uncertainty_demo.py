@@ -4,7 +4,7 @@ import argparse
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from weathernarrate.narrate import build_structured_summary, generate_narrative
+from whether.narrate import build_structured_summary, generate_narrative
 
 
 def _timeline(start_utc: datetime, points: int = 4) -> list[str]:

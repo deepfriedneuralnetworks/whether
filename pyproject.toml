@@ -3,13 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "weathernarrate"
+name = "whether"
 version = "0.1.0"
 description = "AI weather narratives powered by NVIDIA Earth-2 and Nemotron"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 license = "Apache-2.0"
-authors = [{ name = "WeatherNarrate Contributors" }]
+authors = [{ name = "Whether Contributors" }]
 dependencies = [
   "cfgrib>=0.9.15.1",
   "earth2studio[dlwp,fcn,fcn3,perturbation]",
@@ -36,7 +36,7 @@ map = ["cartopy"]
 all = ["earth2studio[dlwp,fcn,fcn3,stormcast,corrdiff]", "pyproj", "ecmwf-opendata", "cfgrib", "eccodes", "cartopy"]
 
 [project.scripts]
-weathernarrate = "weathernarrate.cli:main"
-weatherforecast = "weathernarrate.cli:forecast_main"
-weatherstorm = "weathernarrate.cli:storm_main"
-weatherzoom = "weathernarrate.cli:zoom_main"
+whether = "whether.cli:main"
+weatherforecast = "whether.cli:forecast_main"
+weatherstorm = "whether.cli:storm_main"
+weatherzoom = "whether.cli:zoom_main"

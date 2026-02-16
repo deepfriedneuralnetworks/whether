@@ -15,7 +15,7 @@ from .uncertainty import calibrate_uncertainty_band
 from .units import is_temperature_variable, mm_to_inches, precip_to_mm, to_celsius_if_needed, wind_to_mph
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = os.getenv("WEATHERNARRATE_NEMOTRON_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
+DEFAULT_MODEL = os.getenv("WHETHER_NEMOTRON_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct")
 
 
 def _c_to_f(c: float) -> float:
@@ -388,7 +388,7 @@ def generate_narrative(
         "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/",
-        "X-Title": "WeatherNarrate",
+        "X-Title": "Whether",
     }
 
     try:

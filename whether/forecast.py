@@ -601,7 +601,7 @@ def run_ecmwf_ensemble(
 
     out_path = _output_path(output_dir, "forecast_ecmwf", init_time, run_tag=run_tag)
     if cache_dir is None:
-        cache_dir = Path(".cache/weathernarrate/ecmwf")
+        cache_dir = Path(".cache/whether/ecmwf")
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     start_idx, end_idx = _compute_step_window(
@@ -766,7 +766,7 @@ def _patch_s3fs_set_session_bug() -> None:
     except ImportError:
         return
 
-    if getattr(s3fs.S3FileSystem, "_weathernarrate_safe_set_session", False):
+    if getattr(s3fs.S3FileSystem, "_whether_safe_set_session", False):
         return
 
     original = s3fs.S3FileSystem.set_session
@@ -782,7 +782,7 @@ def _patch_s3fs_set_session_bug() -> None:
         return await original(self, refresh=refresh, kwargs=kwargs)
 
     s3fs.S3FileSystem.set_session = safe_set_session
-    s3fs.S3FileSystem._weathernarrate_safe_set_session = True
+    s3fs.S3FileSystem._whether_safe_set_session = True
 
 
 def run_global_ensemble(

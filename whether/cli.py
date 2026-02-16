@@ -36,7 +36,7 @@ def _add_common_flags(parser: argparse.ArgumentParser) -> None:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="weathernarrate", description="Earth-2 + Nemotron Weather Narrative CLI")
+    parser = argparse.ArgumentParser(prog="whether", description="Earth-2 + Nemotron Weather Narrative CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_forecast = sub.add_parser("forecast", help="Global ensemble forecast (Earth2 or ECMWF)")
@@ -73,7 +73,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p_forecast.add_argument(
         "--cache-dir",
-        default=".cache/weathernarrate/ecmwf",
+        default=".cache/whether/ecmwf",
         help="Cache directory for ECMWF GRIB files (used when --provider ecmwf)",
     )
     p_forecast.add_argument(
@@ -118,6 +118,12 @@ def _print_structured(extracted: dict[str, Any]) -> None:
 def _write_json_summary(extracted: dict[str, Any], output_dir: Path, mode: str) -> Path:
     path = output_dir / f"{mode}_summary.json"
     path.write_text(json.dumps(extracted, indent=2), encoding="utf-8")
+    return path
+
+
+def _write_narrative_text(narrative: str, output_dir: Path, mode: str) -> Path:
+    path = output_dir / f"{mode}_narrative.txt"
+    path.write_text(narrative, encoding="utf-8")
     return path
 
 
@@ -183,7 +189,10 @@ def _run_forecast(args: argparse.Namespace) -> int:
         if err:
             console.print(f"[yellow]Nemotron fallback:[/yellow] {err}")
         else:
-            console.print(Panel(narrative or "", title="Nemotron Narrative", expand=False))
+            narrative_text = narrative or ""
+            console.print(Panel(narrative_text, title="Nemotron Narrative", expand=False))
+            narrative_path = _write_narrative_text(narrative_text, output_dir, "forecast")
+            console.print(f"Narrative TXT: {narrative_path}")
 
     console.print(f"Model output: {run.output_path}")
     console.print(f"Structured JSON: {json_path}")
@@ -229,7 +238,10 @@ def _run_storm(args: argparse.Namespace) -> int:
         if err:
             console.print(f"[yellow]Nemotron fallback:[/yellow] {err}")
         else:
-            console.print(Panel(narrative or "", title="Nemotron Narrative", expand=False))
+            narrative_text = narrative or ""
+            console.print(Panel(narrative_text, title="Nemotron Narrative", expand=False))
+            narrative_path = _write_narrative_text(narrative_text, output_dir, "storm")
+            console.print(f"Narrative TXT: {narrative_path}")
 
     console.print(f"Model output: {run.output_path}")
     console.print(f"Structured JSON: {json_path}")
@@ -273,7 +285,10 @@ def _run_zoom(args: argparse.Namespace) -> int:
         if err:
             console.print(f"[yellow]Nemotron fallback:[/yellow] {err}")
         else:
-            console.print(Panel(narrative or "", title="Nemotron Narrative", expand=False))
+            narrative_text = narrative or ""
+            console.print(Panel(narrative_text, title="Nemotron Narrative", expand=False))
+            narrative_path = _write_narrative_text(narrative_text, output_dir, "zoom")
+            console.print(f"Narrative TXT: {narrative_path}")
 
     console.print(f"Model output: {run.output_path}")
     console.print(f"Structured JSON: {json_path}")

@@ -35,7 +35,7 @@ def snap_to_grid(lat: float, lon: float, resolution: float = 0.25) -> tuple[floa
 
 def resolve_location(query: str, timeout: int = 8) -> ResolvedLocation:
     """Resolve a human-readable location to coordinates via Nominatim."""
-    geolocator = Nominatim(user_agent="weathernarrate")
+    geolocator = Nominatim(user_agent="whether")
     try:
         loc = geolocator.geocode(query, exactly_one=True, timeout=timeout)
     except GeocoderServiceError as exc:
