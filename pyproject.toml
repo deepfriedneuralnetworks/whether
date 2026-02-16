@@ -11,7 +11,10 @@ requires-python = ">=3.11,<3.13"
 license = "Apache-2.0"
 authors = [{ name = "WeatherNarrate Contributors" }]
 dependencies = [
+  "cfgrib>=0.9.15.1",
   "earth2studio[dlwp,fcn,fcn3,perturbation]",
+  "eccodes>=2.45.0",
+  "ecmwf-opendata>=0.3.26",
   "geopy",
   "matplotlib",
   "numpy",

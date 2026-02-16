@@ -239,7 +239,7 @@ def _robust_color_limits(values: np.ndarray) -> tuple[float, float]:
     return vmin, vmax
 
 
-def _half_width_degrees_for_radius(lat_center: float, *, radius_km: float = 3000.0) -> tuple[float, float]:
+def _half_width_degrees_for_radius(lat_center: float, *, radius_km: float = 1300.0) -> tuple[float, float]:
     lat_half = radius_km / 111.0
     lon_half = radius_km / max(111.0 * max(np.cos(np.deg2rad(abs(lat_center))), 0.2), 1e-6)
     return min(lat_half, 40.0), min(lon_half, 60.0)
@@ -252,7 +252,7 @@ def _subset_regional_map(
     *,
     lat_center: float,
     lon_center: float,
-    radius_km: float = 3000.0,
+    radius_km: float = 1300.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     lat_half, lon_half = _half_width_degrees_for_radius(lat_center, radius_km=radius_km)
     lat_mask = np.abs(lat_vals - lat_center) <= lat_half
@@ -307,7 +307,7 @@ def _plot_map_panel(
     valid_time_utc: str | None = None,
     valid_time_label: str | None = None,
 ) -> None:
-    title = "Temperature Map (t2m, ~3000 km context)"
+    title = "Temperature Map (t2m, ~1300 km context)"
     if valid_time_label:
         title = f"{title}\nValid: {fmt_time_label(valid_time_label)}"
     if lat is None or lon is None:
@@ -328,7 +328,7 @@ def _plot_map_panel(
         field_c,
         lat_center=lat_center,
         lon_center=lon_center,
-        radius_km=3000.0,
+        radius_km=1300.0,
     )
 
     vmin, vmax = _robust_color_limits(field_sub)

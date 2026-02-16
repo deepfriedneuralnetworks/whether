@@ -2542,7 +2542,10 @@ name = "weathernarrate"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "cfgrib" },
     { name = "earth2studio", extra = ["dlwp", "fcn", "perturbation"] },
+    { name = "eccodes" },
+    { name = "ecmwf-opendata" },
     { name = "geopy" },
     { name = "matplotlib" },
     { name = "numpy" },
@@ -2591,6 +2594,7 @@ zoom = [
 requires-dist = [
     { name = "cartopy", marker = "extra == 'all'" },
     { name = "cartopy", marker = "extra == 'map'" },
+    { name = "cfgrib", specifier = ">=0.9.15.1" },
     { name = "cfgrib", marker = "extra == 'all'" },
     { name = "cfgrib", marker = "extra == 'forecast-ecmwf'" },
     { name = "earth2studio", extras = ["corrdiff"], marker = "extra == 'zoom'" },
@@ -2600,8 +2604,10 @@ requires-dist = [
     { name = "earth2studio", extras = ["fcn"], marker = "extra == 'forecast-fcn'" },
     { name = "earth2studio", extras = ["fcn3"], marker = "extra == 'forecast-fcn3'" },
     { name = "earth2studio", extras = ["stormcast"], marker = "extra == 'storm'" },
+    { name = "eccodes", specifier = ">=2.45.0" },
     { name = "eccodes", marker = "extra == 'all'" },
     { name = "eccodes", marker = "extra == 'forecast-ecmwf'" },
+    { name = "ecmwf-opendata", specifier = ">=0.3.26" },
     { name = "ecmwf-opendata", marker = "extra == 'all'" },
     { name = "ecmwf-opendata", marker = "extra == 'forecast-ecmwf'" },
     { name = "geopy" },
