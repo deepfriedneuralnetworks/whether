@@ -1,122 +1,107 @@
 # WeatherNarrate
 
-Weather forecasting CLI that combines ensemble weather outputs with Nemotron narratives.
+Turn raw AI weather model output into plain-language forecasts with calibrated and interpretable uncertainty — powered by NVIDIA Earth-2, ECMWF, and Nemotron.
 
-`weathernarrate` supports three modes (`forecast`, `storm`, `zoom`) and produces:
-- structured local summary with uncertainty stats
-- optional Nemotron narrative
-- charts + JSON artifacts
+One command gets you an ensemble forecast, a 4-panel dashboard, probability-of-impact stats, and a Nemotron-generated narrative that says "bring an umbrella" instead of "tp ensemble mean 2.3 mm. 
 
-## Current Implementation Status
+## What It Does
 
-| Command | Backend | Status |
+```
+weathernarrate forecast "San Francisco"
+```
+
+1. Pulls an ensemble forecast (ECMWF IFS ENS by default, or Earth-2 DLWP/FCN/FCN3)
+2. Extracts point data at your location with timezone-aware local times
+3. Computes ensemble statistics, impact probabilities (PoP, freeze risk, wind thresholds), and calibrated uncertainty bands
+4. Generates a 4-panel dashboard (regional map, temperature, wind, precipitation) with a "now" marker
+5. Sends the structured summary to Nemotron, which returns a narrative with confidence language tied to ensemble spread
+
+The uncertainty calibration is the key piece: ensemble spread is compared against per-variable climatological sigma references, producing confidence labels (`high`, `moderate`, `low`) that directly control narrative tone. Narrow spread gets confident language. Wide spread gets hedged language and scenario descriptions.
+
+## Three Modes
+
+| Command | What It Runs | Resolution |
 |---|---|---|
-| `forecast` | ECMWF IFS ENS (default) or Earth-2 DLWP/FCN/FCN3 | Working |
-| `storm` | Earth-2 StormCast | Working (`--dry-run` available; real run requires heavy deps/GPU) |
-| `zoom` | CorrDiff Taiwan | `--dry-run` only (real inference scaffold not yet wired) |
+| `forecast` | ECMWF IFS ENS (default) or Earth-2 DLWP/FCN/FCN3 | ~25 km global |
+| `storm` | Earth-2 StormCast (HRRR emulator) | ~3 km Central US |
+| `zoom` | Earth-2 CorrDiff generative downscaling | ~3 km Taiwan |
 
-Alias entry points are installed:
-- `weatherforecast`
-- `weatherstorm`
-- `weatherzoom`
+All three support `--dry-run` with spatially coherent synthetic data for demo/dev without GPU or downloads.
 
-## Forecast Behavior (Important)
-
-- Default provider: `ecmwf`
-- Default members: `6`
-- Default steps: `6` (6-hour spacing, 36h horizon)
-- Timeline window includes:
-  - one forecast point immediately before "now" (context)
-  - all forecast points from "now" through horizon
-- Forecast dashboard includes a dashed vertical "now" line on timeline panels.
-- Map panel is location-centered regional context (~3000 km radius), not full-globe.
-
-## Uncertainty Calibration
-
-Narrative confidence language is tied to spread/sigma ratio bands:
-- `< 1 sigma`: `high confidence`
-- `1-2 sigma`: `moderate confidence, notable uncertainty`
-- `> 2 sigma`: `low confidence, highly uncertain`
-
-Current sigma references are static per variable (not dynamically estimated from local climatology).
-
-## Install
+## Quickstart
 
 ```bash
 uv sync
 ```
 
-Optional dependencies:
-- ECMWF forecast backend:
-```bash
-uv pip install ecmwf-opendata cfgrib eccodes
-```
-- Map boundaries/coastlines on forecast panel:
-```bash
-uv pip install cartopy
-```
-- StormCast mode:
-```bash
-uv pip install 'earth2studio[stormcast]' pyproj
-```
-- CorrDiff mode (still scaffolded for real runs):
-```bash
-uv pip install 'earth2studio[corrdiff]'
-```
-
-## Usage
-
-Forecast (default ECMWF):
-```bash
-uv run weathernarrate forecast "NYC"
-```
-
-Forecast without narrative:
-```bash
-uv run weathernarrate forecast "NYC" --no-narrate
-```
-
-Forecast dry-run (no real model/data download):
+Dry-run (no API keys, no downloads, no GPU):
 ```bash
 uv run weathernarrate forecast "NYC" --dry-run --no-narrate
 ```
 
-Earth-2 forecast backend:
-```bash
-uv run weathernarrate forecast "NYC" --provider earth2 --model dlwp
-```
-
-StormCast dry-run:
-```bash
-uv run weathernarrate storm "Denver, CO" --dry-run --no-narrate
-```
-
-CorrDiff dry-run:
-```bash
-uv run weathernarrate zoom "Taipei" --dry-run --no-narrate
-```
-
-## Nemotron Narrative
-
-Set API key:
+Full run with Nemotron narrative:
 ```bash
 export OPENROUTER_API_KEY=your_key
+uv run weathernarrate forecast "NYC"
 ```
 
-Then run any command without `--no-narrate`.
+## Optional Dependencies
 
-Narrative prompt currently enforces sections in this order:
-1. TL;DR
-2. Description
-3. Timeline
-4. Uncertainty
-5. Practical Advice
+Install only what you need:
+
+```bash
+uv pip install ecmwf-opendata cfgrib eccodes   # ECMWF backend (default provider)
+uv pip install cartopy                          # coastlines + borders on map panel
+uv pip install 'earth2studio[stormcast]' pyproj # StormCast mode
+uv pip install 'earth2studio[corrdiff]'         # CorrDiff mode
+```
+
+## Uncertainty Calibration
+
+Ensemble spread is normalized against static per-variable sigma references:
+
+| Ratio | Label | Narrative Effect |
+|---|---|---|
+| < 1 sigma | high confidence | Confident language, emphasize member agreement |
+| 1-2 sigma | moderate confidence | Hedged language, bounded ranges |
+| > 2 sigma | low confidence | Explicit disagreement, plausible scenarios |
+
+Impact probabilities are computed directly from ensemble members:
+- Precipitation: P(total >= 0.1 mm), P(>= 1 mm), P(>= 5 mm), first-rain window
+- Temperature: P(t2m <= 0 C), P(t2m <= -5 C)
+- Wind: P(speed >= 20/30/40 mph)
+
+## Narrative Structure
+
+Nemotron outputs follow a fixed 5-section format:
+
+1. **TL;DR** — one sentence
+2. **Description** — pattern overview with current local time and forecast window
+3. **Timeline** — local-time progression with concrete values at 4+ checkpoints
+4. **Uncertainty** — confidence labels tied to calibration bands, where members disagree most
+5. **Practical Advice** — dress, umbrella, commute timing, outdoor plans
 
 ## Outputs
 
-Per run, the CLI writes:
-- model output dataset (`.zarr`)
-- structured summary JSON (`*_summary.json`)
-- charts (forecast dashboard or mode-specific plots)
+Each run produces:
+- `forecast_dashboard.png` — 4-panel chart (or mode-specific plots for storm/zoom)
+- `*_summary.json` — structured data with all ensemble stats and probabilities
+- `*.zarr` — raw model output dataset
 
 Default output directory: `./outputs`
+
+## Examples
+
+```bash
+# ECMWF ensemble, 6 members, 36h horizon
+uv run weathernarrate forecast "Tokyo" --members 6 --steps 6
+
+# Earth-2 FCN3 with precipitation diagnostics
+uv run weathernarrate forecast "London" --provider earth2 --model fcn3 --diagnostics
+
+# StormCast hourly storm tracking
+uv run weathernarrate storm "Denver, CO" --steps 12 --members 4
+
+# CorrDiff Taiwan downscaling snapshot
+uv run weathernarrate zoom "Taipei" --samples 8 --dry-run
+```
