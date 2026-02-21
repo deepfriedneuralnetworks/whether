@@ -170,6 +170,8 @@ def _run_forecast(args: argparse.Namespace) -> int:
     _print_warnings(run.warnings)
 
     extracted = extract_at_location(run.dataset, lat, lon, mode="forecast")
+    extracted["location"]["query"] = getattr(args, "location", None) or ""
+    extracted["location"]["label"] = label
     extracted = trim_extracted_to_future(extracted, now_utc=now_utc, future_hours=future_hours)
     charts = generate_charts(extracted, output_dir, mode="forecast", dataset=run.dataset, lat=lat, lon=lon)
     json_path = _write_json_summary(extracted, output_dir, "forecast")
@@ -221,6 +223,8 @@ def _run_storm(args: argparse.Namespace) -> int:
     _print_warnings(run.warnings)
 
     extracted = extract_at_location(run.dataset, lat, lon, mode="storm")
+    extracted["location"]["query"] = getattr(args, "location", None) or ""
+    extracted["location"]["label"] = label
     charts = generate_charts(extracted, output_dir, mode="storm")
     json_path = _write_json_summary(extracted, output_dir, "storm")
 
@@ -268,6 +272,8 @@ def _run_zoom(args: argparse.Namespace) -> int:
     _print_warnings(run.warnings)
 
     extracted = extract_at_location(run.dataset, lat, lon, mode="zoom")
+    extracted["location"]["query"] = getattr(args, "location", None) or ""
+    extracted["location"]["label"] = label
     charts = generate_charts(extracted, output_dir, mode="zoom")
     json_path = _write_json_summary(extracted, output_dir, "zoom")
 

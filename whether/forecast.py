@@ -152,7 +152,7 @@ def _mock_global_dataset(
         "dlwp": ["t2m", "z500", "t850"],
         "fcn": ["t2m", "u10m", "v10m", "tp"],
         "fcn3": ["t2m", "u10m", "v10m", "tp"],
-        "ecmwf": ["t2m", "u10m", "v10m", "tp"],
+        "ecmwf": ["t2m", "u10m", "v10m", "tp", "sf"],
     }
     variables = model_vars.get(model_name, model_vars["dlwp"])
 
@@ -250,6 +250,24 @@ def _mock_global_dataset(
                 step_inc = np.clip(
                     (0.55 * convective_core + stratiform)[np.newaxis, :, :] * member_wet_bias
                     + np.abs(rng.normal(0.0, 0.08, size=(members, lats.size, lons.size))),
+                    a_min=0.0,
+                    a_max=None,
+                )
+                if lead_idx == 0:
+                    cumulative[:, :, :] = 0.0
+                else:
+                    cumulative += step_inc.astype(np.float32)
+                arr[0, lead_idx, :, :, :] = cumulative
+        elif name == "sf":
+            # Synthetic snowfall water-equivalent (SWE), tied to tp and subfreezing bias.
+            cumulative = np.zeros((members, lats.size, lons.size), dtype=np.float32)
+            cold_core = np.clip((2.0 - (0.08 * lat_delta + 0.03 * lon_delta)), a_min=0.2, a_max=1.8)
+            for lead_idx in range(n_leads):
+                phase = 0.0 if n_leads == 1 else float(lead_idx) / float(n_leads - 1)
+                step_base = np.clip(0.12 + 0.20 * phase + 0.08 * background_wave, a_min=0.0, a_max=None)
+                step_inc = np.clip(
+                    step_base[np.newaxis, :, :] * cold_core[np.newaxis, :, :]
+                    + np.abs(rng.normal(0.0, 0.03, size=(members, lats.size, lons.size))),
                     a_min=0.0,
                     a_max=None,
                 )
@@ -485,6 +503,8 @@ def _open_ecmwf_grib_as_dataset(path: Path, *, control_member: int | None = None
         "10v": "v10m",
         "msl": "msl",
         "tp": "tp",
+        "sf": "sf",
+        "sd": "sd",
         "tcwv": "tcwv",
     }
 
@@ -616,8 +636,9 @@ def run_ecmwf_ensemble(
         warnings.append(
             f"Forecast lead-time window requested: +{step_hours[0]}h to +{step_hours[-1]}h from cycle init."
         )
-    params_primary = ["2t", "10u", "10v", "tp"]
-    params_fallback = ["2t", "10u", "10v"]
+    params_primary = ["2t", "10u", "10v", "tp", "sf", "sd"]
+    params_fallback_1 = ["2t", "10u", "10v", "tp", "sf"]
+    params_fallback_2 = ["2t", "10u", "10v", "tp"]
     numbers = list(range(1, capped_members + 1))
 
     cache_key_base = hashlib.sha1(  # noqa: S324
@@ -644,7 +665,7 @@ def run_ecmwf_ensemble(
     last_err: Exception | None = None
     params_used: list[str] = params_primary
     pf_path: Path | None = None
-    for params in [params_primary, params_fallback]:
+    for params in [params_primary, params_fallback_1, params_fallback_2]:
         param_sig = _params_sig(params)
         if use_cache:
             pf_candidate = cache_dir / f"ecmwf_{init_time.strftime('%Y%m%dT%H')}Z_pf_{cache_key_base}_{param_sig}.grib2"

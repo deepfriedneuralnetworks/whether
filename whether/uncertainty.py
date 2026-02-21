@@ -24,6 +24,8 @@ _SIGMA_REF = {
     "t850": (3.0, "C"),
     "z500": (60.0, "gpm"),
     "tp": (2.0, "mm"),
+    "sf": (2.0, "mm"),
+    "sd": (8.0, "mm"),
     "u10m": (5.0, "mph"),
     "v10m": (5.0, "mph"),
     "refc": (8.0, "dBZ"),
@@ -47,7 +49,7 @@ def _normalize_spread(var_name: str, spread: np.ndarray, units: str) -> tuple[np
             return spread * (5.0 / 9.0), "C"
         # Kelvin and Celsius deltas have the same magnitude for spread.
         return spread, "C"
-    if var_name == "tp":
+    if var_name in {"tp", "sf", "sd"}:
         values_mm, out_unit = precip_to_mm(spread, units=units)
         return values_mm, out_unit
     if var_name in {"u10m", "v10m"}:
