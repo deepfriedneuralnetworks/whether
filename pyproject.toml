@@ -16,6 +16,7 @@ dependencies = [
   "eccodes>=2.45.0",
   "ecmwf-opendata>=0.3.26",
   "geopy",
+  "jupyter>=1.1.1",
   "matplotlib",
   "numpy",
   "requests",
@@ -40,3 +41,8 @@ whether = "whether.cli:main"
 weatherforecast = "whether.cli:forecast_main"
 weatherstorm = "whether.cli:storm_main"
 weatherzoom = "whether.cli:zoom_main"
+
+[tool.uv.workspace]
+members = [
+    "earth2studio-project",
+]

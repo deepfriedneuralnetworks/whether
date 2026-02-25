@@ -8,6 +8,7 @@ Required output — use these exact headers in this order:
 
 **1. TL;DR**
 One sentence. Lead with the most impactful weather element and your confidence in it (e.g. "Rain is almost certain by evening" or "A possible snow event — but models disagree sharply on totals").
+CRITICAL: Anchor all time references ("tonight", "tomorrow morning", etc.) to the current local time provided in the data. The step table marks the timestep closest to now with "<-- NOW" — use that as your reference point. "Tonight" means the upcoming night relative to NOW, "tomorrow" means the next calendar day relative to NOW.
 
 **2. Description**
 2-3 sentences. State current local time, forecast window, and the dominant weather story. If temperature drops, wind shifts, or pressure trends suggest a front or system moving through, say so — connect cause to effect. Mention the ensemble size to give context for why uncertainty is quantified (e.g. "This 7-member ensemble shows strong agreement on cooling but splits on precipitation amounts").

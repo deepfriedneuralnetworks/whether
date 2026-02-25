@@ -315,6 +315,23 @@ def _build_step_table(extracted: dict[str, Any], timezone_name: str) -> str:
     if not timeline:
         return ""
 
+    # Find the timestep closest to now for the "<-- NOW" marker
+    now_idx: int | None = None
+    current_utc_str = extracted.get("current_time_utc")
+    if current_utc_str and timeline:
+        try:
+            now64 = np.datetime64(_to_utc_datetime(current_utc_str).replace(tzinfo=None))
+            deltas = []
+            for ts in timeline:
+                try:
+                    t64 = np.datetime64(_to_utc_datetime(ts).replace(tzinfo=None))
+                    deltas.append(abs((t64 - now64) / np.timedelta64(1, "s")))
+                except Exception:  # noqa: BLE001
+                    deltas.append(float("inf"))
+            now_idx = int(np.argmin(deltas))
+        except Exception:  # noqa: BLE001
+            pass
+
     rows: list[str] = ["", "Step-by-step data (mean ± spread [range]):"]
 
     # Temperature in Celsius (K spread == C spread for deltas)
@@ -391,10 +408,19 @@ def _build_step_table(extracted: dict[str, Any], timezone_name: str) -> str:
             s = float(sf_avg[i])
             sx = float(sf_hi[i])
             sp = float(sf_spread[i]) if sf_spread is not None and i < len(sf_spread) else 0.0
-            parts.append(f"snow {s:.2f}±{sp:.2f}mm SWE [max {sx:.2f}mm]")
+            s_in = float(mm_to_inches(np.asarray(s)))
+            sx_in = float(mm_to_inches(np.asarray(sx)))
+            # 10:1 snow-to-liquid ratio estimate
+            s_depth = s_in * 10.0
+            sx_depth = sx_in * 10.0
+            parts.append(
+                f"snow {s:.2f}±{sp:.2f}mm SWE ({s_in:.2f}in SWE, ~{s_depth:.1f}in depth) "
+                f"[max {sx:.2f}mm ({sx_in:.2f}in SWE, ~{sx_depth:.1f}in depth)]"
+            )
 
         row = " | ".join(parts) if parts else "(no data)"
-        rows.append(f"  {local}: {row}")
+        now_marker = "  <-- NOW" if i == now_idx else ""
+        rows.append(f"  {local}: {row}{now_marker}")
 
     return "\n".join(rows)
 
@@ -514,6 +540,8 @@ def generate_narrative(
                 "role": "user",
                 "content": (
                     f"Write the weather narrative for {location_name}. "
+                    f"It is currently {extracted.get('current_time_local') or extracted.get('current_time_utc', 'unknown')}. "
+                    "Anchor all time references (tonight, tomorrow, etc.) to this time. "
                     "Cite the step-by-step values directly in the Timeline.\n\n"
                     f"{structured}"
                     f"{step_table}"
